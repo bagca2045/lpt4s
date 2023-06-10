@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CRUD Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 20px auto;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group input[type="checkbox"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>CRUD Generator</h1>
+    <form id="crudForm">
+        <div class="form-group">
+            <label for="tableName">Table Name:</label>
+            <input type="text" id="tableName" name="tableName" required>
+        </div>
+        <div class="form-group" id="columnsContainer">
+            <label>Columns:</label>
+            <div id="columnFieldsContainer"></div>
+            <button type="button" onclick="addColumnField()">Add Column</button>
+        </div>
+        <div class="form-group">
+            <button type="button" class="btn" onclick="generateCRUD()">Generate CRUD</button>
+        </div>
+    </form>
+
+    <script>
+        var columnFieldIndex = 0;
+
+        function addColumnField() {
+            var columnFieldsContainer = document.getElementById("columnFieldsContainer");
+
+            var columnField = document.createElement("div");
+            columnField.className = "column-field";
+
+            var columnNameInput = document.createElement("input");
+            columnNameInput.type = "text";
+            columnNameInput.name = "columnName" + columnFieldIndex;
+            columnNameInput.placeholder = "Column Name";
+            columnField.appendChild(columnNameInput);
+
+            var columnTypeSelect = document.createElement("select");
+            columnTypeSelect.name = "columnType" + columnFieldIndex;
+            columnTypeSelect.innerHTML = `
+                <option value="TEXT">TEXT</option>
+                <option value="INT">INT</option>
+                <option value="REAL">REAL</option>
+            `;
+            columnField.appendChild(columnTypeSelect);
+
+            var mandatoryCheckbox = document.createElement("input");
+            mandatoryCheckbox.type = "checkbox";
+            mandatoryCheckbox.name = "mandatory" + columnFieldIndex;
+            mandatoryCheckbox.id = "mandatory" + columnFieldIndex;
+            columnField.appendChild(mandatoryCheckbox);
+
+            var mandatoryLabel = document.createElement("label");
+            mandatoryLabel.htmlFor = "mandatory" + columnFieldIndex;
+            mandatoryLabel.innerText = "Mandatory";
+            columnField.appendChild(mandatoryLabel);
+
+            columnFieldsContainer.appendChild(columnField);
+
+            columnFieldIndex++;
+        }
+
+        function generateCRUD() {
+            var tableName = document.getElementById("tableName").value;
+
+            var columnFields = document.querySelectorAll(".column-field");
+            var columns = [];
+
+            columnFields.forEach(function(columnField) {
+                var columnName = columnField.querySelector("input[type='text']").value;
+                var columnType = columnField.querySelector("select").value;
+                var mandatory = columnField.querySelector("input[type='checkbox']").checked;
+
+                columns.push({
+                    name: columnName,
+                    type: columnType,
+                    mandatory: mandatory
+                });
+            });
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/generateCRUD", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        var result = xhr.responseText;
+                        console.log(result);
+                    } else {
+                        console.error("Error: " + xhr.status);
+                    }
+                }
+            };
+            xhr.send(JSON.stringify({ tableName: tableName, columns: columns }));
+        }
+    </script>
+</body>
+</html>
