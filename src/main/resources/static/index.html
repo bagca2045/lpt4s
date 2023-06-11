@@ -46,7 +46,12 @@
             cursor: pointer;
         }
 
-        .btn:hover {
+        .btn[disabled] {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn:not([disabled]):hover {
             background-color: #45a049;
         }
     </style>
@@ -64,7 +69,7 @@
             <button type="button" onclick="addColumnField()">Add Column</button>
         </div>
         <div class="form-group">
-            <button type="button" class="btn" onclick="generateCRUD()">Generate CRUD</button>
+            <button type="button" class="btn" id="generateButton" onclick="generateCRUD()" disabled>Generate CRUD</button>
         </div>
     </form>
 
@@ -106,7 +111,33 @@
             columnFieldsContainer.appendChild(columnField);
 
             columnFieldIndex++;
+
+            updateButtonState();
         }
+
+
+        function updateButtonState() {
+            var tableName = document.getElementById("tableName").value;
+            var columnFieldsContainer = document.getElementById("columnFieldsContainer");
+            var columnInputs = columnFieldsContainer.querySelectorAll('input[type="text"]');
+
+            var generateButton = document.getElementById("generateButton");
+
+            // Check if table name is entered and at least one column name is added
+            if (tableName.trim() !== "" && columnInputs.length > 0) {
+                for (var i = 0; i < columnInputs.length; i++) {
+                    if (columnInputs[i].value.trim() === "") {
+                        generateButton.disabled = true; // Disable the button if any column name is empty
+                        return;
+                    }
+                }
+                generateButton.disabled = false; // Enable the button if all column names are entered
+            } else {
+                generateButton.disabled = true; // Disable the button if table name or columns are empty
+            }
+        }
+
+
 
         function generateCRUD() {
             var xhr = new XMLHttpRequest();
@@ -119,6 +150,17 @@
             };
             xhr.send();
         }
+
+        // Add event listener for table name input
+        document.getElementById("tableName").addEventListener("input", updateButtonState);
+
+        // Add event listeners for column name inputs
+        var columnFieldsContainer = document.getElementById("columnFieldsContainer");
+        columnFieldsContainer.addEventListener("input", function (event) {
+            if (event.target && event.target.matches("input[type='text']")) {
+                updateButtonState();
+            }
+        });
     </script>
 </body>
 </html>
