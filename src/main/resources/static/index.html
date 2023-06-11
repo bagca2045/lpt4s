@@ -141,15 +141,42 @@
 
         function generateCRUD() {
             var xhr = new XMLHttpRequest();
+            var tableName = document.getElementById("tableName").value;
+            var columnFieldsContainer = document.getElementById("columnFieldsContainer");
+            var columnInputs = columnFieldsContainer.querySelectorAll('input[type="text"]');
+            var columnSelects = columnFieldsContainer.querySelectorAll('select');
+            var columnCheckboxes = columnFieldsContainer.querySelectorAll('input[type="checkbox"]');
+
+            var formData = {
+                tableName: tableName,
+                columns: []
+            };
+
+            // Iterate over the column fields
+            for (var i = 0; i < columnInputs.length; i++) {
+                var columnName = columnInputs[i].value;
+                var columnType = columnSelects[i].value;
+                var mandatory = columnCheckboxes[i].checked;
+
+                var column = {
+                columnName: columnName,
+                columnType: columnType,
+                mandatory: mandatory
+                };
+
+                formData.columns.push(column);
+            }
+
             xhr.open("POST", "/generateCRUD", true);
             xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.onreadystatechange = function() {
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4 && xhr.status === 200) {
-                    console.log("Server method called successfully!");
+                console.log("Server method called successfully!");
                 }
             };
-            xhr.send();
+            xhr.send(JSON.stringify(formData));
         }
+
 
         // Add event listener for table name input
         document.getElementById("tableName").addEventListener("input", updateButtonState);
@@ -164,3 +191,4 @@
     </script>
 </body>
 </html>
+

@@ -1,5 +1,4 @@
-PRODUCTS
-Name s m
-Price d m
-Beschreibung s m
-Baujahr i
+TABLO313
+COLBIRSIN TEXT m
+COLIKI INT m
+COLÜC REAL
