@@ -109,37 +109,15 @@
         }
 
         function generateCRUD() {
-            var tableName = document.getElementById("tableName").value;
-
-            var columnFields = document.querySelectorAll(".column-field");
-            var columns = [];
-
-            columnFields.forEach(function(columnField) {
-                var columnName = columnField.querySelector("input[type='text']").value;
-                var columnType = columnField.querySelector("select").value;
-                var mandatory = columnField.querySelector("input[type='checkbox']").checked;
-
-                columns.push({
-                    name: columnName,
-                    type: columnType,
-                    mandatory: mandatory
-                });
-            });
-
             var xhr = new XMLHttpRequest();
             xhr.open("POST", "/generateCRUD", true);
             xhr.setRequestHeader("Content-Type", "application/json");
             xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        var result = xhr.responseText;
-                        console.log(result);
-                    } else {
-                        console.error("Error: " + xhr.status);
-                    }
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    console.log("Server method called successfully!");
                 }
             };
-            xhr.send(JSON.stringify({ tableName: tableName, columns: columns }));
+            xhr.send();
         }
     </script>
 </body>

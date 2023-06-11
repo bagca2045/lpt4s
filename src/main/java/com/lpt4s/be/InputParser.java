@@ -13,17 +13,23 @@ import java.sql.Statement;
 import java.util.StringTokenizer;
 
 
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Component
+@RestController
 public class InputParser {
 
     // TODO: evtl. in property file auslagern
-    private final String INPUT_FILE_PATH = "/Users/ai1045/Desktop/input";
+    private final String INPUT_FILE_PATH = "input";
     private final String INPUT_FILE_NAME = "schema.txt";
 
     private final String projectRoot = System.getProperty("user.dir");
     private final Path createSqlFilePath = Paths.get(projectRoot, "output", "create.sql");
+
+    @PostMapping("/generateCRUD")
+    public void generateCRUD() throws IOException {
+        consume();
+    }
 
     public void consume() throws IOException {
 
