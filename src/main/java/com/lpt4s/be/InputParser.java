@@ -116,7 +116,7 @@ public class InputParser {
                     notNullString = "NOT NULL";
                 }
             }
-            createTableSql.append(columnName + " " + getColumnType(dataType) + " " + notNullString +", ");     
+            createTableSql.append(columnName + " " + convertColumnTypeLetterToText(dataType) + " " + notNullString +", ");     
             line = reader.readLine();
         }
         reader.close();
@@ -160,16 +160,16 @@ public class InputParser {
         Files.write(createSqlFilePath, createTableSql.toString().getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
-    private String getColumnType(String dataType) {
+    private String convertColumnTypeLetterToText(String dataType) {
         switch (dataType) {
-            case "TEXT":
-                return "s";
-            case "REAL":
-                return "d";
-            case "INT":
-                return "i";
+            case "s":
+                return "TEXT";
+            case "d":
+                return "REAL";
+            case "i":
+                return "INT";
             default:
-                return "s";
+                return "TEXT";
         }
     }
 }

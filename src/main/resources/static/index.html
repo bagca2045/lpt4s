@@ -54,24 +54,86 @@
         .btn:not([disabled]):hover {
             background-color: #45a049;
         }
+
+        /* New styles for table and animation */
+        .container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .form-container {
+            flex: 1;
+            padding-right: 20px;
+            transition: all 1s;
+            transform: translateX(0%);
+        }
+
+        .table-container {
+            flex: 1;
+            background-color: #f2f2f2;
+            transition: all 1s;
+            transform: translateX(-100%);
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .table-container.show {
+            transform: translateX(0%);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <h1>CRUD Generator</h1>
-    <form id="crudForm">
-        <div class="form-group">
-            <label for="tableName">Table Name:</label>
-            <input type="text" id="tableName" name="tableName" required>
+    <div class="container">
+        <div class="form-container">
+            <form id="crudForm">
+                <div class="form-group">
+                    <label for="tableName">Table Name:</label>
+                    <input type="text" id="tableName" name="tableName" required>
+                </div>
+                <div class="form-group" id="columnsContainer">
+                    <label>Columns:</label>
+                    <div id="columnFieldsContainer"></div>
+                    <button type="button" onclick="addColumnField()">Add Column</button>
+                </div>
+                <div class="form-group">
+                    <button type="button" class="btn" id="generateButton" onclick="generateCRUD()" disabled>Generate CRUD</button>
+                </div>
+            </form>
         </div>
-        <div class="form-group" id="columnsContainer">
-            <label>Columns:</label>
-            <div id="columnFieldsContainer"></div>
-            <button type="button" onclick="addColumnField()">Add Column</button>
+        <div class="table-container">
+            <table id="crudTable">
+                <thead>
+                    <tr>
+                        <th>Table Name</th>
+                        <th>Column Name</th>
+                        <th>Type</th>
+                        <th>Mandatory</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
-        <div class="form-group">
-            <button type="button" class="btn" id="generateButton" onclick="generateCRUD()" disabled>Generate CRUD</button>
-        </div>
-    </form>
+    </div>
 
     <script>
         var columnFieldIndex = 0;
@@ -172,9 +234,40 @@
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                 console.log("Server method called successfully!");
+                splitView(columnInputs, columnSelects, columnCheckboxes, tableName); // By moving the splitView() call inside the onreadystatechange event handler, 
+                //the function will only be executed after the server response is received and processed 
+                //successfully. This ensures that the table animation is triggered at the appropriate time.
                 }
             };
             xhr.send(JSON.stringify(formData));
+        }
+
+        function splitView(columnInputs, columnSelects, columnCheckboxes, tableName){
+            var tableContainer = document.querySelector('.table-container');
+            var crudTable = document.getElementById("crudTable");
+            var crudTableBody = crudTable.querySelector('tbody');
+
+            // Create the table rows dynamically
+            for (var i = 0; i < columnInputs.length; i++) {
+                var columnName = columnInputs[i].value;
+                var columnType = columnSelects[i].value;
+                var mandatory = columnCheckboxes[i].checked;
+
+                var row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${tableName}</td>
+                    <td>${columnName}</td>
+                    <td>${columnType}</td>
+                    <td>${mandatory ? 'Yes' : 'No'}</td>
+                `;
+
+                crudTableBody.appendChild(row);
+            }
+
+            // Animate the transition
+            tableContainer.style.transform = "translateX(0%)";
+            tableContainer.style.opacity = 1;
+            tableContainer.style.visibility = "visible";
         }
 
 
