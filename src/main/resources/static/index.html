@@ -91,13 +91,16 @@
 
         th, td {
             padding: 10px;
-            text-align: left;
             border-bottom: 1px solid #ddd;
         }
 
         th {
             background-color: #4CAF50;
             color: white;
+            text-align: center;
+        }
+        td {
+            text-align: left;
         }
     </style>
 </head>
@@ -122,14 +125,7 @@
         </div>
         <div class="table-container">
             <table id="crudTable">
-                <thead>
-                    <tr>
-                        <th>Table Name</th>
-                        <th>Column Name</th>
-                        <th>Type</th>
-                        <th>Mandatory</th>
-                    </tr>
-                </thead>
+                <thead></thead>
                 <tbody></tbody>
             </table>
         </div>
@@ -234,7 +230,7 @@
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                 console.log("Server method called successfully!");
-                splitView(columnInputs, columnSelects, columnCheckboxes, tableName); // By moving the splitView() call inside the onreadystatechange event handler, 
+                splitView(columnInputs, tableName); // By moving the splitView() call inside the onreadystatechange event handler, 
                 //the function will only be executed after the server response is received and processed 
                 //successfully. This ensures that the table animation is triggered at the appropriate time.
                 }
@@ -242,25 +238,29 @@
             xhr.send(JSON.stringify(formData));
         }
 
-        function splitView(columnInputs, columnSelects, columnCheckboxes, tableName){
+        function splitView(columnInputs, tableName){
             var tableContainer = document.querySelector('.table-container');
             var crudTable = document.getElementById("crudTable");
             var crudTableBody = crudTable.querySelector('tbody');
+            var crudTableHead = crudTable.querySelector('thead');
+
+            // Clear previous table rows
+            crudTableBody.innerHTML = "";
+
+            // Create the table header with table name
+            var tableHeaderRow = document.createElement("tr");
+            var tableNameHeader = document.createElement("th");
+            tableNameHeader.textContent = tableName;
+            tableHeaderRow.appendChild(tableNameHeader);
+            crudTableHead.appendChild(tableHeaderRow);
 
             // Create the table rows dynamically
             for (var i = 0; i < columnInputs.length; i++) {
                 var columnName = columnInputs[i].value;
-                var columnType = columnSelects[i].value;
-                var mandatory = columnCheckboxes[i].checked;
-
                 var row = document.createElement("tr");
                 row.innerHTML = `
-                    <td>${tableName}</td>
                     <td>${columnName}</td>
-                    <td>${columnType}</td>
-                    <td>${mandatory ? 'Yes' : 'No'}</td>
                 `;
-
                 crudTableBody.appendChild(row);
             }
 
