@@ -30,7 +30,6 @@
         .form-group input,
         .form-group select,
         .form-group input[type="checkbox"] {
-            width: 100%;
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -102,6 +101,18 @@
         td {
             text-align: left;
         }
+        .form-group .mandatory {
+            font-weight: normal;
+        }
+        .checkbox-container {
+            display: flex; /* Use flexbox for horizontal layout */
+            align-items: center; /* Vertically center the checkbox and label */
+        }
+
+        .mandatory {
+            margin-left: 8px; /* Add some spacing between the checkbox and label */
+        }
+
     </style>
 </head>
 <body>
@@ -155,16 +166,22 @@
             `;
             columnField.appendChild(columnTypeSelect);
 
+            var checkboxContainer = document.createElement("div"); // Create a div container
+            checkboxContainer.classList.add("checkbox-container"); // Add a class for styling
+
             var mandatoryCheckbox = document.createElement("input");
             mandatoryCheckbox.type = "checkbox";
             mandatoryCheckbox.name = "mandatory" + columnFieldIndex;
             mandatoryCheckbox.id = "mandatory" + columnFieldIndex;
-            columnField.appendChild(mandatoryCheckbox);
+            checkboxContainer.appendChild(mandatoryCheckbox); // Append checkbox to the container
 
             var mandatoryLabel = document.createElement("label");
             mandatoryLabel.htmlFor = "mandatory" + columnFieldIndex;
             mandatoryLabel.innerText = "Mandatory";
-            columnField.appendChild(mandatoryLabel);
+            mandatoryLabel.classList.add("mandatory"); // Add the "mandatory" class
+            checkboxContainer.appendChild(mandatoryLabel); // Append label to the container
+
+            columnField.appendChild(checkboxContainer); // Append the checkbox container to the column field
 
             columnFieldsContainer.appendChild(columnField);
 
@@ -172,6 +189,7 @@
 
             updateButtonState();
         }
+
 
 
         function updateButtonState() {
