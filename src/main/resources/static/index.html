@@ -54,93 +54,47 @@
             background-color: #45a049;
         }
 
-        /* New styles for table and animation */
-        .container {
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .form-container {
-            flex: 1;
-            padding-right: 20px;
-            transition: all 1s;
-            transform: translateX(0%);
-        }
-
-        .table-container {
-            flex: 1;
-            background-color: #f2f2f2;
-            transition: all 1s;
-            transform: translateX(-100%);
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .table-container.show {
-            transform: translateX(0%);
-            opacity: 1;
-            visibility: visible;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
+        /* New style for the generated tables */
+        .generated-table {
+            width: calc(33.33% - 20px);
+            margin: 10px;
             padding: 10px;
-            border-bottom: 1px solid #ddd;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            float: left;
         }
 
-        th {
+        .generated-table th {
             background-color: #4CAF50;
             color: white;
             text-align: center;
         }
-        td {
+
+        .generated-table td {
             text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
         }
-        .form-group .mandatory {
-            font-weight: normal;
-        }
-        .checkbox-container {
-            display: flex; /* Use flexbox for horizontal layout */
-            align-items: center; /* Vertically center the checkbox and label */
-        }
-
-        .mandatory {
-            margin-left: 8px; /* Add some spacing between the checkbox and label */
-        }
-
     </style>
 </head>
 <body>
     <h1>CRUD Generator</h1>
-    <div class="container">
-        <div class="form-container">
-            <form id="crudForm">
-                <div class="form-group">
-                    <label for="tableName">Table Name:</label>
-                    <input type="text" id="tableName" name="tableName" required>
-                </div>
-                <div class="form-group" id="columnsContainer">
-                    <label>Columns:</label>
-                    <div id="columnFieldsContainer"></div>
-                    <button type="button" onclick="addColumnField()">Add Column</button>
-                </div>
-                <div class="form-group">
-                    <button type="button" class="btn" id="generateButton" onclick="generateCRUD()" disabled>Generate CRUD</button>
-                </div>
-            </form>
+    <form id="crudForm">
+        <div class="form-group">
+            <label for="tableName">Table Name:</label>
+            <input type="text" id="tableName" name="tableName" required>
         </div>
-        <div class="table-container">
-            <table id="crudTable">
-                <thead></thead>
-                <tbody></tbody>
-            </table>
+        <div class="form-group" id="columnsContainer">
+            <label>Columns:</label>
+            <div id="columnFieldsContainer"></div>
+            <button type="button" onclick="addColumnField()">Add Column</button>
         </div>
-    </div>
+        <div class="form-group">
+            <button type="button" class="btn" id="generateButton" onclick="generateCRUD()" disabled>Generate CRUD</button>
+        </div>
+    </form>
+
+    <div id="generatedTables"></div>
 
     <script>
         var columnFieldIndex = 0;
@@ -155,6 +109,7 @@
             columnNameInput.type = "text";
             columnNameInput.name = "columnName" + columnFieldIndex;
             columnNameInput.placeholder = "Column Name";
+            columnNameInput.addEventListener("input", updateButtonState); // Add input event listener
             columnField.appendChild(columnNameInput);
 
             var columnTypeSelect = document.createElement("select");
@@ -164,24 +119,26 @@
                 <option value="INT">INT</option>
                 <option value="REAL">REAL</option>
             `;
+            columnTypeSelect.addEventListener("input", updateButtonState); // Add input event listener
             columnField.appendChild(columnTypeSelect);
 
-            var checkboxContainer = document.createElement("div"); // Create a div container
-            checkboxContainer.classList.add("checkbox-container"); // Add a class for styling
+            var checkboxContainer = document.createElement("div");
+            checkboxContainer.classList.add("checkbox-container");
 
             var mandatoryCheckbox = document.createElement("input");
             mandatoryCheckbox.type = "checkbox";
             mandatoryCheckbox.name = "mandatory" + columnFieldIndex;
             mandatoryCheckbox.id = "mandatory" + columnFieldIndex;
-            checkboxContainer.appendChild(mandatoryCheckbox); // Append checkbox to the container
+            mandatoryCheckbox.addEventListener("input", updateButtonState); // Add input event listener
+            checkboxContainer.appendChild(mandatoryCheckbox);
 
             var mandatoryLabel = document.createElement("label");
             mandatoryLabel.htmlFor = "mandatory" + columnFieldIndex;
             mandatoryLabel.innerText = "Mandatory";
-            mandatoryLabel.classList.add("mandatory"); // Add the "mandatory" class
-            checkboxContainer.appendChild(mandatoryLabel); // Append label to the container
+            mandatoryLabel.classList.add("mandatory");
+            checkboxContainer.appendChild(mandatoryLabel);
 
-            columnField.appendChild(checkboxContainer); // Append the checkbox container to the column field
+            columnField.appendChild(checkboxContainer);
 
             columnFieldsContainer.appendChild(columnField);
 
@@ -190,33 +147,27 @@
             updateButtonState();
         }
 
-
-
         function updateButtonState() {
             var tableName = document.getElementById("tableName").value;
             var columnFieldsContainer = document.getElementById("columnFieldsContainer");
             var columnInputs = columnFieldsContainer.querySelectorAll('input[type="text"]');
+            var isGenerateButtonDisabled = false;
 
-            var generateButton = document.getElementById("generateButton");
-
-            // Check if table name is entered and at least one column name is added
-            if (tableName.trim() !== "" && columnInputs.length > 0) {
+            if (tableName.trim() === "" || columnInputs.length === 0) {
+                isGenerateButtonDisabled = true;
+            } else {
                 for (var i = 0; i < columnInputs.length; i++) {
                     if (columnInputs[i].value.trim() === "") {
-                        generateButton.disabled = true; // Disable the button if any column name is empty
-                        return;
+                        isGenerateButtonDisabled = true;
+                        break;
                     }
                 }
-                generateButton.disabled = false; // Enable the button if all column names are entered
-            } else {
-                generateButton.disabled = true; // Disable the button if table name or columns are empty
             }
+
+            document.getElementById("generateButton").disabled = isGenerateButtonDisabled;
         }
 
-
-
         function generateCRUD() {
-            var xhr = new XMLHttpRequest();
             var tableName = document.getElementById("tableName").value;
             var columnFieldsContainer = document.getElementById("columnFieldsContainer");
             var columnInputs = columnFieldsContainer.querySelectorAll('input[type="text"]');
@@ -228,78 +179,45 @@
                 columns: []
             };
 
-            // Iterate over the column fields
             for (var i = 0; i < columnInputs.length; i++) {
                 var columnName = columnInputs[i].value;
                 var columnType = columnSelects[i].value;
                 var mandatory = columnCheckboxes[i].checked;
 
                 var column = {
-                columnName: columnName,
-                columnType: columnType,
-                mandatory: mandatory
+                    columnName: columnName,
+                    columnType: columnType,
+                    mandatory: mandatory
                 };
 
                 formData.columns.push(column);
             }
 
-            xhr.open("POST", "/generateCRUD", true);
-            xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                console.log("Server method called successfully!");
-                splitView(columnInputs, tableName); // By moving the splitView() call inside the onreadystatechange event handler, 
-                //the function will only be executed after the server response is received and processed 
-                //successfully. This ensures that the table animation is triggered at the appropriate time.
-                }
-            };
-            xhr.send(JSON.stringify(formData));
-        }
+            var generatedTable = document.createElement("table");
+            generatedTable.className = "generated-table";
 
-        function splitView(columnInputs, tableName){
-            var tableContainer = document.querySelector('.table-container');
-            var crudTable = document.getElementById("crudTable");
-            var crudTableBody = crudTable.querySelector('tbody');
-            var crudTableHead = crudTable.querySelector('thead');
-
-            // Clear previous table rows
-            crudTableBody.innerHTML = "";
-
-            // Create the table header with table name
             var tableHeaderRow = document.createElement("tr");
             var tableNameHeader = document.createElement("th");
             tableNameHeader.textContent = tableName;
             tableHeaderRow.appendChild(tableNameHeader);
-            crudTableHead.appendChild(tableHeaderRow);
+            generatedTable.appendChild(tableHeaderRow);
 
-            // Create the table rows dynamically
             for (var i = 0; i < columnInputs.length; i++) {
                 var columnName = columnInputs[i].value;
                 var row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${columnName}</td>
                 `;
-                crudTableBody.appendChild(row);
+                generatedTable.appendChild(row);
             }
 
-            // Animate the transition
-            tableContainer.style.transform = "translateX(0%)";
-            tableContainer.style.opacity = 1;
-            tableContainer.style.visibility = "visible";
+            var generatedTables = document.getElementById("generatedTables");
+            generatedTables.appendChild(generatedTable);
+
+            document.getElementById("crudForm").reset();
+
+            updateButtonState();
         }
-
-
-        // Add event listener for table name input
-        document.getElementById("tableName").addEventListener("input", updateButtonState);
-
-        // Add event listeners for column name inputs
-        var columnFieldsContainer = document.getElementById("columnFieldsContainer");
-        columnFieldsContainer.addEventListener("input", function (event) {
-            if (event.target && event.target.matches("input[type='text']")) {
-                updateButtonState();
-            }
-        });
     </script>
 </body>
 </html>
-
