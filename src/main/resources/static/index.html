@@ -35,6 +35,10 @@
             border-radius: 4px;
         }
 
+        .form-group-select-all{
+            display: flex;
+        }
+
         .btn {
             display: inline-block;
             padding: 10px 20px;
@@ -54,63 +58,161 @@
             background-color: #45a049;
         }
 
-        /* New style for the generated tables */
-        .generated-table {
-            width: calc(33.33% - 20px);
-            margin: 10px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            float: left;
+        /* New styles for table and animation */
+        .container {
+            display: flex;
+            flex-wrap: wrap; /* Enable wrapping of table rows */
+            height: 100vh;
+            overflow: scroll;
+            flex-direction: column; /* Change the flex direction to column */
         }
 
-        .generated-table th {
+        .form-container {
+            flex: 1;
+            padding-right: 20px;
+            transition: all 1s;
+            transform: translateX(0%);
+            overflow: auto;
+        }
+
+        .table-container {
+            flex: 1;
+            background-color: #f2f2f2;
+            transition: all 1s;
+            transform: translateX(-100%);
+            opacity: 0;
+            visibility: hidden;
+            overflow: auto;
+        }
+
+        .table-container-wrapper{
+            display: flex;
+        }
+
+        .table-container.show {
+            transform: translateX(0%);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .table-row {
+            display: flex;
+            flex-wrap: wrap; /* Enable wrapping of tables */
+        }
+
+        table {
+            border-collapse: collapse;
+            margin-bottom: 20px; /* Add spacing between tables */
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
             background-color: #4CAF50;
             color: white;
             text-align: center;
         }
 
-        .generated-table td {
+        td {
             text-align: left;
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
         }
+
+        .form-group .mandatory {
+            font-weight: normal;
+        }
+
+        .column-field{
+            display: flex;
+        }
+
+        .checkbox-container {
+            display: flex; /* Use flexbox for horizontal layout */
+            align-items: center; /* Vertically center the checkbox and label */
+        }
+
+        .mandatory {
+            margin-left: 8px; /* Add some spacing between the checkbox and label */
+        }
+
+        /* Style for table checkbox */
+        .table-checkbox {
+            margin-right: 8px; /* Add some spacing between checkbox and table name */
+        }
+
+
     </style>
 </head>
 <body>
     <h1>CRUD Generator</h1>
-    <form id="crudForm">
-        <div class="form-group">
-            <label for="tableName">Table Name:</label>
-            <input type="text" id="tableName" name="tableName" required>
+    <div class="container">
+        <div class="form-container">
+            <form id="crudForm">
+                <div class="form-group">
+                    <label for="tableName">Table Name:</label>
+                    <input type="text" id="tableName" name="tableName" required>
+                </div>
+                <div class="form-group" id="columnsContainer">
+                    <label>Columns:</label>
+                    <div id="columnFieldsContainer"></div>
+                    <br>
+                    <button type="button" class="btn" onclick="addColumnField()">Add Column</button>
+                </div>
+                <div class="form-group">
+                    <button type="button" class="btn" id="generateButton" onclick="generateCRUD()" disabled>Generate tables</button>
+                </div>
+                <div class="form-group-select-all">
+                    <button type="button" class="btn" id="deleteTablesButton" onclick="deleteTables()" disabled>Delete tables</button>
+                    <input type="checkbox" id="selectAllTables" onclick="toggleAllTableCheckboxes()">
+                    <label for="selectAllTables" style="margin-top: 9px; margin-left: 7px;">Select All Tables</label>
+                </div>
+                <br>
+                <hr>
+                <br>
+            </form>
         </div>
-        <div class="form-group" id="columnsContainer">
-            <label>Columns:</label>
-            <div id="columnFieldsContainer"></div>
-            <button type="button" onclick="addColumnField()">Add Column</button>
+        <div class="table-container">
+            <div class="table-row"> <!-- Add a container for rows -->
+                <!-- Generated tables will be added here -->
+            </div>
         </div>
-        <div class="form-group">
-            <button type="button" class="btn" id="generateButton" onclick="generateCRUD()" disabled>Generate CRUD</button>
-        </div>
-    </form>
-
-    <div id="generatedTables"></div>
+    </div>
 
     <script>
+
         var columnFieldIndex = 0;
 
         function addColumnField() {
             var columnFieldsContainer = document.getElementById("columnFieldsContainer");
+            var columnNameInputs = columnFieldsContainer.querySelectorAll('input[type="text"]');
+            var columnNameInputValues = Array.from(columnNameInputs).map(input => input.value.toLowerCase()); // Convert to lowercase for case-insensitive comparison
+
+            var newColumnNameInput = document.createElement("input");
+            newColumnNameInput.type = "text";
+            newColumnNameInput.name = "columnName" + columnFieldIndex;
+            newColumnNameInput.placeholder = "Column Name";
 
             var columnField = document.createElement("div");
             columnField.className = "column-field";
 
-            var columnNameInput = document.createElement("input");
-            columnNameInput.type = "text";
-            columnNameInput.name = "columnName" + columnFieldIndex;
-            columnNameInput.placeholder = "Column Name";
-            columnNameInput.addEventListener("input", updateButtonState); // Add input event listener
-            columnField.appendChild(columnNameInput);
+            // Create the delete button (red X)
+            var deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className = "delete-button";
+            deleteButton.innerHTML = "&times;"; // Use the HTML entity code for the red X
+            deleteButton.style.color = "red"; // Apply red color to the button text
+
+            deleteButton.addEventListener("click", function () {
+                // Remove the column field when the X is clicked
+                columnField.remove();
+                // Update the button state after removal
+                updateButtonState();
+            });
+            columnField.appendChild(deleteButton);
+
+            columnField.appendChild(newColumnNameInput);
 
             var columnTypeSelect = document.createElement("select");
             columnTypeSelect.name = "columnType" + columnFieldIndex;
@@ -119,26 +221,24 @@
                 <option value="INT">INT</option>
                 <option value="REAL">REAL</option>
             `;
-            columnTypeSelect.addEventListener("input", updateButtonState); // Add input event listener
             columnField.appendChild(columnTypeSelect);
 
-            var checkboxContainer = document.createElement("div");
-            checkboxContainer.classList.add("checkbox-container");
+            var checkboxContainer = document.createElement("div"); // Create a div container
+            checkboxContainer.classList.add("checkbox-container"); // Add a class for styling
 
             var mandatoryCheckbox = document.createElement("input");
             mandatoryCheckbox.type = "checkbox";
             mandatoryCheckbox.name = "mandatory" + columnFieldIndex;
             mandatoryCheckbox.id = "mandatory" + columnFieldIndex;
-            mandatoryCheckbox.addEventListener("input", updateButtonState); // Add input event listener
-            checkboxContainer.appendChild(mandatoryCheckbox);
+            checkboxContainer.appendChild(mandatoryCheckbox); // Append checkbox to the container
 
             var mandatoryLabel = document.createElement("label");
             mandatoryLabel.htmlFor = "mandatory" + columnFieldIndex;
             mandatoryLabel.innerText = "Mandatory";
-            mandatoryLabel.classList.add("mandatory");
-            checkboxContainer.appendChild(mandatoryLabel);
+            mandatoryLabel.classList.add("mandatory"); // Add the "mandatory" class
+            checkboxContainer.appendChild(mandatoryLabel); // Append label to the container
 
-            columnField.appendChild(checkboxContainer);
+            columnField.appendChild(checkboxContainer); // Append the checkbox container to the column field
 
             columnFieldsContainer.appendChild(columnField);
 
@@ -147,38 +247,62 @@
             updateButtonState();
         }
 
+
+
         function updateButtonState() {
-            var tableName = document.getElementById("tableName").value;
-            var columnFieldsContainer = document.getElementById("columnFieldsContainer");
-            var columnInputs = columnFieldsContainer.querySelectorAll('input[type="text"]');
-            var isGenerateButtonDisabled = false;
+    var tableName = document.getElementById("tableName").value;
+    var columnFieldsContainer = document.getElementById("columnFieldsContainer");
+    var columnInputs = columnFieldsContainer.querySelectorAll('input[type="text"]');
+    var generateButton = document.getElementById("generateButton");
+    var deleteTablesButton = document.getElementById("deleteTablesButton");
+    var columnNames = Array.from(columnInputs).map(input => input.value.toLowerCase());
 
-            if (tableName.trim() === "" || columnInputs.length === 0) {
-                isGenerateButtonDisabled = true;
-            } else {
-                for (var i = 0; i < columnInputs.length; i++) {
-                    if (columnInputs[i].value.trim() === "") {
-                        isGenerateButtonDisabled = true;
-                        break;
-                    }
-                }
+    // Check if there are any empty column names
+    var hasEmptyColumnNames = columnNames.some(name => name.trim() === "");
+
+    // Check if there are duplicate column names
+    var hasDuplicateColumnNames = new Set(columnNames).size !== columnNames.length;
+
+    if (tableName.trim() !== "" && columnNames.length > 0 && !hasEmptyColumnNames && !hasDuplicateColumnNames) {
+        // Check if the table name matches any of the existing table names
+        var existingTableNames = document.querySelectorAll('.table-checkbox + table thead th:last-child');
+        for (var j = 0; j < existingTableNames.length; j++) {
+            if (existingTableNames[j].textContent === tableName) {
+                generateButton.disabled = true; // Disable the Generate CRUD button if the table name matches an existing table name
+                return;
             }
-
-            document.getElementById("generateButton").disabled = isGenerateButtonDisabled;
         }
 
+        generateButton.disabled = false; // Enable the Generate CRUD button if all conditions are met
+    } else {
+        generateButton.disabled = true; // Disable the Generate CRUD button if table name is empty, there are empty column names, or if there are duplicate column names
+    }
+
+    deleteTablesButton.disabled = true; // Disable the Delete Tables button by default
+}
+
+
+
+
+
         function generateCRUD() {
+            var xhr = new XMLHttpRequest();
             var tableName = document.getElementById("tableName").value;
             var columnFieldsContainer = document.getElementById("columnFieldsContainer");
             var columnInputs = columnFieldsContainer.querySelectorAll('input[type="text"]');
             var columnSelects = columnFieldsContainer.querySelectorAll('select');
             var columnCheckboxes = columnFieldsContainer.querySelectorAll('input[type="checkbox"]');
 
+            // Disable the Generate button to prevent multiple submissions
+            var generateButton = document.getElementById("generateButton");
+            generateButton.disabled = true;
+
             var formData = {
                 tableName: tableName,
                 columns: []
             };
 
+            // Iterate over the column fields
             for (var i = 0; i < columnInputs.length; i++) {
                 var columnName = columnInputs[i].value;
                 var columnType = columnSelects[i].value;
@@ -193,37 +317,160 @@
                 formData.columns.push(column);
             }
 
-            var generatedTable = document.createElement("table");
-            generatedTable.className = "generated-table";
+            xhr.open("POST", "/generateCRUD", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    console.log("Server method called successfully!");
+                    splitView(columnInputs, tableName);
+                }
+            };
+            xhr.send(JSON.stringify(formData));
+        }
 
+        function splitView(columnInputs, tableName) {
+            var tableContainer = document.querySelector('.table-container');
+            var tableRow = document.querySelector('.table-row');
+
+            // Create a new table for each generation
+            var crudTable = document.createElement("table");
+            var crudTableBody = document.createElement("tbody");
+            var crudTableHead = document.createElement("thead");
+
+            // Clear previous table rows
+            crudTableBody.innerHTML = "";
+
+            // Create a checkbox for the table
+            var tableCheckbox = document.createElement("input");
+            tableCheckbox.type = "checkbox";
+            tableCheckbox.id = "tableCheckbox" + tableName; // You can use the table name to make it unique
+            tableCheckbox.classList.add("table-checkbox"); // Add a class for styling
+
+            // Create the table header with table name and checkbox
             var tableHeaderRow = document.createElement("tr");
             var tableNameHeader = document.createElement("th");
-            tableNameHeader.textContent = tableName;
+            tableNameHeader.appendChild(tableCheckbox);
+            tableNameHeader.appendChild(document.createTextNode(tableName));
             tableHeaderRow.appendChild(tableNameHeader);
-            generatedTable.appendChild(tableHeaderRow);
+            crudTableHead.appendChild(tableHeaderRow);
 
+            // Create the table rows dynamically
             for (var i = 0; i < columnInputs.length; i++) {
                 var columnName = columnInputs[i].value;
                 var row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${columnName}</td>
                 `;
-                generatedTable.appendChild(row);
+                crudTableBody.appendChild(row);
             }
 
-            var generatedTables = document.getElementById("generatedTables");
-            generatedTables.appendChild(generatedTable);
+            crudTable.appendChild(crudTableHead);
+            crudTable.appendChild(crudTableBody);
 
-            // Clear column fields
-            columnFieldsContainer.innerHTML = "";
+            // Create a container for the table and its checkbox
+            var tableContainerWrapper = document.createElement("div");
+            tableContainerWrapper.classList.add("table-container-wrapper");
+            tableContainerWrapper.appendChild(tableCheckbox);
+            tableContainerWrapper.appendChild(crudTable);
 
-            // Reset the columnFieldIndex
-            columnFieldIndex = 0;
+            // Add the table container wrapper to the row
+            tableRow.appendChild(tableContainerWrapper);
 
-            document.getElementById("crudForm").reset();
+            // Animate the transition
+            tableContainer.style.transform = "translateX(0%)";
+            tableContainer.style.opacity = 1;
+            tableContainer.style.visibility = "visible";
 
-            updateButtonState();
+            // Enable the Delete Tables button
+            var deleteTablesButton = document.getElementById("deleteTablesButton");
+            deleteTablesButton.disabled = false;
+
+            // Call the updateDeleteButtonState function to update the Delete Tables button state
+            updateDeleteButtonState();
+
+            // Call addTableCheckboxListener to initialize checkbox listeners
+            addTableCheckboxListener();
         }
+
+        function deleteTables() {
+            var tableCheckboxes = document.querySelectorAll('.table-checkbox');
+
+            // Create an array to store the tables to be deleted
+            var tablesToDelete = [];
+
+            // Iterate through the table checkboxes
+            for (var i = 0; i < tableCheckboxes.length; i++) {
+                if (tableCheckboxes[i].checked) {
+                    // Find the closest parent table element
+                    var tableToDelete = tableCheckboxes[i].closest('.table-container-wrapper');
+                    tablesToDelete.push(tableToDelete);
+                }
+            }
+
+            // Delete the tables in the array
+            for (var j = 0; j < tablesToDelete.length; j++) {
+                var tableToDelete = tablesToDelete[j];
+                tableToDelete.parentNode.removeChild(tableToDelete);
+            }
+
+            // Disable the Delete Tables button
+            var deleteTablesButton = document.getElementById("deleteTablesButton");
+            deleteTablesButton.disabled = true;
+
+            // Call the updateDeleteButtonState function to update the Delete Tables button state
+            updateDeleteButtonState();
+        }
+
+        function updateDeleteButtonState() {
+            var tableCheckboxes = document.querySelectorAll('.table-checkbox');
+            var deleteTablesButton = document.getElementById("deleteTablesButton");
+
+            // Check if at least one checkbox is checked
+            var atLeastOneChecked = false;
+            for (var i = 0; i < tableCheckboxes.length; i++) {
+                if (tableCheckboxes[i].checked) {
+                    atLeastOneChecked = true;
+                    break;
+                }
+            }
+
+            // Enable or disable the Delete Tables button accordingly
+            deleteTablesButton.disabled = !atLeastOneChecked;
+        }
+
+        // Call the updateDeleteButtonState function initially
+        updateDeleteButtonState();
+
+        // Add event listener to each table checkbox
+        function addTableCheckboxListener() {
+            var tableCheckboxes = document.querySelectorAll('.table-checkbox');
+            for (var i = 0; i < tableCheckboxes.length; i++) {
+                tableCheckboxes[i].addEventListener('click', updateDeleteButtonState);
+            }
+        }
+
+        function toggleAllTableCheckboxes() {
+            var selectAllCheckbox = document.getElementById("selectAllTables");
+            var tableCheckboxes = document.querySelectorAll('.table-checkbox');
+
+            for (var i = 0; i < tableCheckboxes.length; i++) {
+                tableCheckboxes[i].checked = selectAllCheckbox.checked;
+            }
+
+            // Update the state of the Delete Tables button based on the checkboxes
+            updateDeleteButtonState();
+        }
+
+        // Add event listener for table name input
+        document.getElementById("tableName").addEventListener("input", updateButtonState);
+
+        // Add event listeners for column name inputs
+        var columnFieldsContainer = document.getElementById("columnFieldsContainer");
+        columnFieldsContainer.addEventListener("input", function (event) {
+            if (event.target && event.target.matches("input[type='text']")) {
+                updateButtonState();
+            }
+        });
     </script>
 </body>
 </html>
