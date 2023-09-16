@@ -250,36 +250,36 @@
 
 
         function updateButtonState() {
-    var tableName = document.getElementById("tableName").value;
-    var columnFieldsContainer = document.getElementById("columnFieldsContainer");
-    var columnInputs = columnFieldsContainer.querySelectorAll('input[type="text"]');
-    var generateButton = document.getElementById("generateButton");
-    var deleteTablesButton = document.getElementById("deleteTablesButton");
-    var columnNames = Array.from(columnInputs).map(input => input.value.toLowerCase());
+            var tableName = document.getElementById("tableName").value;
+            var columnFieldsContainer = document.getElementById("columnFieldsContainer");
+            var columnInputs = columnFieldsContainer.querySelectorAll('input[type="text"]');
+            var generateButton = document.getElementById("generateButton");
+            var deleteTablesButton = document.getElementById("deleteTablesButton");
+            var columnNames = Array.from(columnInputs).map(input => input.value.toLowerCase());
 
-    // Check if there are any empty column names
-    var hasEmptyColumnNames = columnNames.some(name => name.trim() === "");
+            // Check if there are any empty column names
+            var hasEmptyColumnNames = columnNames.some(name => name.trim() === "");
 
-    // Check if there are duplicate column names
-    var hasDuplicateColumnNames = new Set(columnNames).size !== columnNames.length;
+            // Check if there are duplicate column names
+            var hasDuplicateColumnNames = new Set(columnNames).size !== columnNames.length;
 
-    if (tableName.trim() !== "" && columnNames.length > 0 && !hasEmptyColumnNames && !hasDuplicateColumnNames) {
-        // Check if the table name matches any of the existing table names
-        var existingTableNames = document.querySelectorAll('.table-checkbox + table thead th:last-child');
-        for (var j = 0; j < existingTableNames.length; j++) {
-            if (existingTableNames[j].textContent === tableName) {
-                generateButton.disabled = true; // Disable the Generate CRUD button if the table name matches an existing table name
-                return;
+            if (tableName.trim() !== "" && columnNames.length > 0 && !hasEmptyColumnNames && !hasDuplicateColumnNames) {
+                // Check if the table name matches any of the existing table names
+                var existingTableNames = document.querySelectorAll('.table-checkbox + table thead th:last-child');
+                for (var j = 0; j < existingTableNames.length; j++) {
+                    if (existingTableNames[j].textContent === tableName) {
+                        generateButton.disabled = true; // Disable the Generate CRUD button if the table name matches an existing table name
+                        return;
+                    }
+                }
+
+                generateButton.disabled = false; // Enable the Generate CRUD button if all conditions are met
+            } else {
+                generateButton.disabled = true; // Disable the Generate CRUD button if table name is empty, there are empty column names, or if there are duplicate column names
             }
+
+            deleteTablesButton.disabled = true; // Disable the Delete Tables button by default
         }
-
-        generateButton.disabled = false; // Enable the Generate CRUD button if all conditions are met
-    } else {
-        generateButton.disabled = true; // Disable the Generate CRUD button if table name is empty, there are empty column names, or if there are duplicate column names
-    }
-
-    deleteTablesButton.disabled = true; // Disable the Delete Tables button by default
-}
 
 
 
