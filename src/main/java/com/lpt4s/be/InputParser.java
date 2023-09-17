@@ -16,7 +16,10 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.StringTokenizer;
 
-
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +45,7 @@ public class InputParser {
         writeSQL2File(new StringBuilder(createSqlStatement));
         executeSQLScript();
     }
+
 
     /**
      * macht aus den eingaben aus der gui ein inputfile
@@ -122,9 +126,6 @@ public class InputParser {
         reader.close();
         replaceLastComma(createTableSql, ");");
         return createTableSql.toString();
-
-        // TODO: 
-        // DROP TABLE tableName;
     }
 
     private void replaceLastComma(StringBuilder input, String replacement) {
@@ -171,5 +172,33 @@ public class InputParser {
             default:
                 return "TEXT";
         }
+    }
+
+    // endpoint for table deletion
+    @DeleteMapping("/deleteTable/{tableName}")
+    public ResponseEntity<String> deleteTable(@PathVariable String tableName) {
+        try {
+            // Implement logic to delete the table with the given name
+            deleteTableInDatabase(tableName);
+            return ResponseEntity.ok("Table '" + tableName + "' has been deleted.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to delete table '" + tableName + "': " + e.getMessage());
+        }
+    }
+    
+    // method to delete one table in the database
+    private void deleteTableInDatabase(String tableName) {
+        // TODO: hardcoded string ersetzen durch zugriff auf application.properties!
+        try (Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "mysecretpassword")) {
+            Statement statement;
+            statement = connection.createStatement();
+            String sqlScript = "DROP TABLE " + tableName;
+            statement.executeUpdate(sqlScript);
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        System.out.println("SQL delete script executed successfully.");
     }
 }

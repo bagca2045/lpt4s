@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CRUD Generator</title>
+    <title>CRUD Central</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -146,7 +146,7 @@
     </style>
 </head>
 <body>
-    <h1>CRUD Generator</h1>
+    <h1>CRUD Central</h1>
     <div class="container">
         <div class="form-container">
             <form id="crudForm">
@@ -403,22 +403,68 @@
                 if (tableCheckboxes[i].checked) {
                     // Find the closest parent table element
                     var tableToDelete = tableCheckboxes[i].closest('.table-container-wrapper');
-                    tablesToDelete.push(tableToDelete);
+                    
+                    // Split the text content by newline character and take the first part (table name)
+                    var parts = tableToDelete.textContent.split('\n');
+                    if (parts.length > 0) {
+                        tablesToDelete.push(parts[0].trim());
+                    }
                 }
             }
 
-            // Delete the tables in the array
-            for (var j = 0; j < tablesToDelete.length; j++) {
-                var tableToDelete = tablesToDelete[j];
-                tableToDelete.parentNode.removeChild(tableToDelete);
+            // Make an HTTP DELETE request for each table to be deleted
+            tablesToDelete.forEach(function(tableName) {
+                fetch("/deleteTable/" + tableName, {
+                    method: "DELETE"
+                })
+                .then(function(response) {
+                    if (response.ok) {
+                        // Table was successfully deleted, you can handle this in your UI
+                        console.log("Table '" + tableName + "' deleted successfully.");
+                        // Remove the table from the UI (optional)
+                        removeTablesFromUI();
+                    } else {
+                        // Handle error cases, e.g., show an error message in your UI
+                        console.error("Failed to delete table '" + tableName + "'.");
+                    }
+                })
+                .catch(function(error) {
+                    console.error("Error:", error);
+                });
+            });
+
+            // Remove the tables from the UI after successful deletion
+            function removeTablesFromUI() {
+                var tableCheckboxes = document.querySelectorAll('.table-checkbox');
+
+                // Create an array to store the tables to be deleted
+                var tablesToDelete = [];
+
+                // Iterate through the table checkboxes
+                for (var i = 0; i < tableCheckboxes.length; i++) {
+                    if (tableCheckboxes[i].checked) {
+                        // Find the closest parent table element
+                        var tableToDelete = tableCheckboxes[i].closest('.table-container-wrapper');
+                        tablesToDelete.push(tableToDelete);
+                    }
+                }
+
+                // Delete the tables in the array
+                for (var j = 0; j < tablesToDelete.length; j++) {
+                    var tableToDelete = tablesToDelete[j];
+                    tableToDelete.parentNode.removeChild(tableToDelete);
+                }
+
+                // Disable the Delete Tables button
+                var deleteTablesButton = document.getElementById("deleteTablesButton");
+                deleteTablesButton.disabled = true;
+
+                // Call the updateDeleteButtonState function to update the Delete Tables button state
+                updateDeleteButtonState();
             }
 
-            // Disable the Delete Tables button
-            var deleteTablesButton = document.getElementById("deleteTablesButton");
-            deleteTablesButton.disabled = true;
 
-            // Call the updateDeleteButtonState function to update the Delete Tables button state
-            updateDeleteButtonState();
+
         }
 
         function updateDeleteButtonState() {
