@@ -49,6 +49,10 @@
             cursor: pointer;
         }
 
+        .delBtn {
+            background-color: red;
+        }
+
         .btn[disabled] {
             background-color: #ccc;
             cursor: not-allowed;
@@ -56,6 +60,10 @@
 
         .btn:not([disabled]):hover {
             background-color: #45a049;
+        }
+
+        .delBtn:not([disabled]):hover {
+            background-color: #ea0f0f;
         }
 
         /* New styles for table and animation */
@@ -83,16 +91,14 @@
             opacity: 0;
             visibility: hidden;
             overflow: auto;
+            
+
         }
 
         .table-container-wrapper{
             display: flex;
-        }
-
-        .table-container.show {
-            transform: translateX(0%);
-            opacity: 1;
-            visibility: visible;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out; /* Smooth fade-in transition */
         }
 
         .table-row {
@@ -103,7 +109,10 @@
         table {
             border-collapse: collapse;
             margin-bottom: 20px; /* Add spacing between tables */
+            margin-top: 20px;
             border: 1px solid darkgreen;
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out; /* Smooth fade-in transition */
         }
 
         /* Add hover effect for tables */
@@ -171,7 +180,7 @@
                     <button type="button" class="btn" id="generateButton" onclick="generateCRUD()" disabled>Generate tables</button>
                 </div>
                 <div class="form-group-select-all">
-                    <button type="button" class="btn" id="deleteTablesButton" onclick="deleteTables()" disabled>Delete tables</button>
+                    <button type="button" class="delBtn btn" id="deleteTablesButton" onclick="deleteTables()" disabled>Delete tables</button>
                     <input type="checkbox" id="selectAllTables" onclick="toggleAllTableCheckboxes()">
                     <label for="selectAllTables" style="margin-top: 9px; margin-left: 7px;">Select All Tables</label>
                 </div>
@@ -385,7 +394,12 @@
 
             // Animate the transition
             tableContainer.style.transform = "translateX(0%)";
-            tableContainer.style.opacity = 1;
+            
+            // Trigger the fade-in effect by setting opacity to 1 after a slight delay
+            setTimeout(function () {
+                tableContainer.style.opacity = 1;
+                tableContainerWrapper.style.opacity = 1;
+            }, 10);
             tableContainer.style.visibility = "visible";
 
             // Enable the Delete Tables button
