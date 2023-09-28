@@ -194,6 +194,11 @@
         </div>
     </div>
 
+    <audio id="deleteSound">
+        <source src="paper-rustle.mp3" type="audio/mpeg">
+    </audio>
+      
+
     <script>
 
         var columnFieldIndex = 0;
@@ -476,6 +481,10 @@
                         }, 10);
                     })(tableToDelete);
                 }
+
+                // Play the delete sound
+                var deleteSound = document.getElementById("deleteSound");
+                deleteSound.play();
 
                 // remove tables after a delay from view
                 setTimeout(function() {
