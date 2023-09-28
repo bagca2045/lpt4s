@@ -438,8 +438,6 @@
                     if (response.ok) {
                         // Table was successfully deleted, you can handle this in your UI
                         console.log("Table '" + tableName + "' deleted successfully.");
-                        // Remove the table from the UI (optional)
-                        removeTablesFromUI();
                     } else {
                         // Handle error cases, e.g., show an error message in your UI
                         console.error("Failed to delete table '" + tableName + "'.");
@@ -449,6 +447,9 @@
                     console.error("Error:", error);
                 });
             });
+
+            // Remove the table from the UI
+            removeTablesFromUI();
 
             // Remove the tables from the UI after successful deletion
             function removeTablesFromUI() {
@@ -467,17 +468,24 @@
                 }
 
                 // Remove the tables from the view with a fade-out-effect
-                // and then really do delete the tables from the array
                 for (var j = 0; j < tablesToDelete.length; j++) {
                     var tableToDelete = tablesToDelete[j];
-                    setTimeout(function () {
-                        tableToDelete.style.opacity = 0;
-                    }, 10);
-                    setTimeout(function () {
-                        tableToDelete.parentNode.removeChild(tableToDelete);
-                    }, 1000);
-                    
+                    (function (currentTable) {
+                        setTimeout(function () {
+                            currentTable.style.opacity = 0;
+                        }, 10);
+                    })(tableToDelete);
                 }
+
+                // remove tables after a delay from view
+                setTimeout(function() {
+                    for (var j = 0; j < tablesToDelete.length; j++) {
+                        var tableToDelete = tablesToDelete[j];
+                        tableToDelete.parentNode.removeChild(tableToDelete);
+                    }
+                }, 1500);
+                
+
 
                 // Disable the Delete Tables button
                 var deleteTablesButton = document.getElementById("deleteTablesButton");
