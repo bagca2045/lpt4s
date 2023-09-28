@@ -91,8 +91,6 @@
             opacity: 0;
             visibility: hidden;
             overflow: auto;
-            
-
         }
 
         .table-container-wrapper{
@@ -361,6 +359,8 @@
             tableCheckbox.type = "checkbox";
             tableCheckbox.id = "tableCheckbox" + tableName; // You can use the table name to make it unique
             tableCheckbox.classList.add("table-checkbox"); // Add a class for styling
+            tableCheckbox.setAttribute('data-table-name', tableName);
+
 
             // Create the table header with table name and checkbox
             var tableHeaderRow = document.createElement("tr");
@@ -422,14 +422,10 @@
             // Iterate through the table checkboxes
             for (var i = 0; i < tableCheckboxes.length; i++) {
                 if (tableCheckboxes[i].checked) {
-                    // Find the closest parent table element
-                    var tableToDelete = tableCheckboxes[i].closest('.table-container-wrapper');
-                    
-                    // Split the text content by newline character and take the first part (table name)
-                    var parts = tableToDelete.textContent.split('\n');
-                    if (parts.length > 0) {
-                        tablesToDelete.push(parts[0].trim());
-                    }
+                    // Get the table name from the data attribute
+                    var tableName = tableCheckboxes[i].getAttribute('data-table-name');
+                    // Add the table name to the list of tables to be deleted
+                     tablesToDelete.push(tableName);
                 }
             }
 
@@ -470,10 +466,17 @@
                     }
                 }
 
-                // Delete the tables in the array
+                // Remove the tables from the view with a fade-out-effect
+                // and then really do delete the tables from the array
                 for (var j = 0; j < tablesToDelete.length; j++) {
                     var tableToDelete = tablesToDelete[j];
-                    tableToDelete.parentNode.removeChild(tableToDelete);
+                    setTimeout(function () {
+                        tableToDelete.style.opacity = 0;
+                    }, 10);
+                    setTimeout(function () {
+                        tableToDelete.parentNode.removeChild(tableToDelete);
+                    }, 1000);
+                    
                 }
 
                 // Disable the Delete Tables button
@@ -512,7 +515,7 @@
         function addTableCheckboxListener() {
             var tableCheckboxes = document.querySelectorAll('.table-checkbox');
             for (var i = 0; i < tableCheckboxes.length; i++) {
-                tableCheckboxes[i].addEventListener('click', updateDeleteButtonState);
+                tableCheckboxes[i].addEventListener('change', updateDeleteButtonState);
             }
         }
 
