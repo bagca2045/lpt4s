@@ -10,15 +10,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -201,4 +205,62 @@ public class InputParser {
         }
         System.out.println("SQL delete script executed successfully.");
     }
+
+    @GetMapping("/getTablesAndColumns")
+    public List<TableInfo> getTablesAndColumns() {
+        List<TableInfo> tableInfoList = new ArrayList<>();
+
+        //TODO: hardcoded string ersetzen durch zugriff auf application.properties! oder als datasource injecten
+        try (Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "mysecretpassword")){
+            DatabaseMetaData metaData = connection.getMetaData();
+            // public is schema... is wichtig!
+            ResultSet tables = metaData.getTables(null, "public", null, new String[]{"TABLE"});
+
+            while (tables.next()) {
+                String tableName = tables.getString("TABLE_NAME");
+                List<String> columns = new ArrayList<>();
+
+                ResultSet columnsResultSet = metaData.getColumns(null, null, tableName, null);
+                while (columnsResultSet.next()) {
+                    String columnName = columnsResultSet.getString("COLUMN_NAME");
+                    columns.add(columnName);
+                }
+
+                TableInfo tableInfo = new TableInfo(tableName, columns);
+                tableInfoList.add(tableInfo);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return tableInfoList;
+    }
+
+    public class TableInfo {
+        private String tableName;
+        private List<String> columns;
+    
+        public String getTableName() {
+            return tableName;
+        }
+
+        public void setTableName(String tableName) {
+            this.tableName = tableName;
+        }
+
+        public List<String> getColumns() {
+            return columns;
+        }
+
+        public void setColumns(List<String> columns) {
+            this.columns = columns;
+        }
+
+        public TableInfo(String tableName, List<String> columns) {
+            this.tableName = tableName;
+            this.columns = columns;
+        }
+
+    }
+    
 }
