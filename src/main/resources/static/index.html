@@ -321,6 +321,9 @@
                 columns: []
             };
 
+            // array to store the column names
+            var columnNames = [];
+
             // Iterate over the column fields
             for (var i = 0; i < columnInputs.length; i++) {
                 var columnName = columnInputs[i].value;
@@ -334,6 +337,8 @@
                 };
 
                 formData.columns.push(column);
+                // Add the column name to the array
+                columnNames.push(columnName);
             }
 
             xhr.open("POST", "/generateCRUD", true);
@@ -341,16 +346,31 @@
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     console.log("Server method called successfully!");
-                    splitView(columnInputs, tableName);
+                    showTable(tableName, columnNames);
                 }
             };
             xhr.send(JSON.stringify(formData));
         }
 
-        function splitView(columnInputs, tableName) {
-            var tableContainer = document.querySelector('.table-container');
-            var tableRow = document.querySelector('.table-row');
+        function fetchTablesAndColumns() {
+            fetch("/getTablesAndColumns")
+                .then(response => response.json())
+                .then(data => {
+                    // Clear previous tables
+                    document.querySelector('.table-row').innerHTML = "";
 
+                    // Iterate through the retrieved data and create tables
+                    data.forEach(tableInfo => {
+                        showTable(tableInfo.tableName, tableInfo.columns);
+                    });
+                })
+                .catch(error => console.error("Error fetching tables and columns:", error));
+        }
+
+        // Call fetchTablesAndColumns to initially load the tables
+        fetchTablesAndColumns();
+
+        function showTable(tableName, columns) {
             // Create a new table for each generation
             var crudTable = document.createElement("table");
             var crudTableBody = document.createElement("tbody");
@@ -366,7 +386,6 @@
             tableCheckbox.classList.add("table-checkbox"); // Add a class for styling
             tableCheckbox.setAttribute('data-table-name', tableName);
 
-
             // Create the table header with table name and checkbox
             var tableHeaderRow = document.createElement("tr");
             var tableNameHeader = document.createElement("th");
@@ -376,14 +395,13 @@
             crudTableHead.appendChild(tableHeaderRow);
 
             // Create the table rows dynamically
-            for (var i = 0; i < columnInputs.length; i++) {
-                var columnName = columnInputs[i].value;
+            columns.forEach(columnName => {
                 var row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${columnName}</td>
                 `;
                 crudTableBody.appendChild(row);
-            }
+            });
 
             crudTable.appendChild(crudTableHead);
             crudTable.appendChild(crudTableBody);
@@ -395,9 +413,11 @@
             tableContainerWrapper.appendChild(crudTable);
 
             // Add the table container wrapper to the row
+            var tableRow = document.querySelector('.table-row');
             tableRow.appendChild(tableContainerWrapper);
 
             // Animate the transition
+            var tableContainer = document.querySelector('.table-container');
             tableContainer.style.transform = "translateX(0%)";
             
             // Trigger the fade-in effect by setting opacity to 1 after a slight delay
@@ -417,6 +437,7 @@
             // Call addTableCheckboxListener to initialize checkbox listeners
             addTableCheckboxListener();
         }
+
 
         function deleteTables() {
             var tableCheckboxes = document.querySelectorAll('.table-checkbox');
