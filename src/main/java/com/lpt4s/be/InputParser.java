@@ -167,11 +167,11 @@ public class InputParser {
 
     private String convertColumnTypeLetterToText(String dataType) {
         switch (dataType) {
-            case "s":
+            case "TEXT":
                 return "TEXT";
-            case "d":
+            case "REAL":
                 return "REAL";
-            case "i":
+            case "INT":
                 return "INT";
             default:
                 return "TEXT";
