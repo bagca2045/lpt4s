@@ -478,6 +478,7 @@
 
             // Call addTableCheckboxListener to initialize checkbox listeners
             addTableCheckboxListener();
+            addTableClickListeners();
         }
 
 
@@ -641,29 +642,44 @@
         }
 
         function addTableClickListeners() {
+            removeTableClickListeners(); // Remove existing listeners first
             var tables = document.querySelectorAll('.table-container-wrapper');
             for (var i = 0; i < tables.length; i++) {
                 tables[i].addEventListener('click', function () {
-                    // Open the modal when a table is clicked
-                    openModal();
-                    
-                    // Placeholder: Populate the modal with CRUD controls for the clicked table
-                    var crudControls = document.getElementById("crudControls");
-                    crudControls.innerHTML = `
-                        <!-- Replace with your CRUD controls -->
-                        <label for="record">Record:</label>
-                        <input type="text" id="record" name="record">
-                        <button onclick="createRecord()">Create</button>
-                        <button onclick="readRecords()">Read</button>
-                        <button onclick="updateRecord()">Update</button>
-                        <button onclick="deleteRecord()">Delete</button>
-                    `;
-                    
-                    // You can identify the clicked table using event.target
+                    handleTableClick();
                 });
             }
         }
 
+        // Function to remove click listeners from tables
+        function removeTableClickListeners() {
+            var tables = document.querySelectorAll('.table-container-wrapper');
+            for (var i = 0; i < tables.length; i++) {
+                tables[i].removeEventListener('click', handleTableClick);
+            }
+        }
+
+        // Function to handle table click
+        function handleTableClick() {
+            // Open the modal when a table is clicked
+            openModal();
+            
+            // Placeholder: Populate the modal with CRUD controls for the clicked table
+            var crudControls = document.getElementById("crudControls");
+            crudControls.innerHTML = `
+                <!-- Replace with your CRUD controls -->
+                <label for="record">Record:</label>
+                <input type="text" id="record" name="record">
+                <button onclick="createRecord()">Create</button>
+                <button onclick="readRecords()">Read</button>
+                <button onclick="updateRecord()">Update</button>
+                <button onclick="deleteRecord()">Delete</button>
+            `;
+            
+            // You can identify the clicked table using event.target
+        }
+
+        // because of the animation. otherwise 0 tables would be considered for adding the eventlisteners to.
         setTimeout(function () {
             addTableClickListeners();
         }, 1000);
